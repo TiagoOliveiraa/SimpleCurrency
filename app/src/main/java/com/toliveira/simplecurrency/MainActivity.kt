@@ -20,7 +20,8 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        var spinnerAdapter = ArrayAdapter(this,android.R.layout.simple_spinner_item,ArrayList<String>())
+        var spinnerAdapter =
+            ArrayAdapter(this, android.R.layout.simple_spinner_item, ArrayList<String>())
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
 
 
@@ -42,6 +43,7 @@ class MainActivity : AppCompatActivity() {
                     }
 
                     binding.currency.adapter = spinnerAdapter
+                    binding.base.adapter = spinnerAdapter
 
                     binding.button.setOnClickListener {
                         exchangeResult(exchange)
@@ -65,16 +67,23 @@ class MainActivity : AppCompatActivity() {
 
     private fun exchangeResult(exchange: ExchangeDataResponse?) {
         val initialValue = binding.value.text.toString().toDouble()
-        var finalValue : Double = 0.0
+        var finalValue: Double = 0.0
         val spinnerChoice = binding.currency.selectedItem.toString()
+        val baseChoice = binding.base.selectedItem.toString()
+        var tmp : Double = 0.0
 
-        if(exchange!!.rates.isNotEmpty()) {
-            val exchangeValue = exchange.rates[spinnerChoice]
-            finalValue = initialValue * exchangeValue!!.toDouble()
-            binding.result.text = finalValue.toString()
+        if (exchange!!.rates.isNotEmpty()) {
+            if (baseChoice == "EUR") {
+                val exchangeValue = exchange.rates[spinnerChoice]
+                finalValue = initialValue * exchangeValue!!.toDouble()
+                binding.result.text = finalValue.toString()
+            }
+            else{
+                tmp = initialValue / exchange.rates[baseChoice]!!.toDouble()
+                finalValue = tmp * exchange.rates[spinnerChoice]!!.toDouble()
+                binding.result.text = finalValue.toString()
+            }
         }
-
-
 
 
     }
