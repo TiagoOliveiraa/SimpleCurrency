@@ -13,18 +13,18 @@ class ExchangeRatesClient {
     private val BASE_URL = "http://api.exchangeratesapi.io/"
     private val apiKey = "a94e21810104cb8418f0bc957aab23e0"
 
-    private val retrofit = Retrofit.Builder()
-        .baseUrl(BASE_URL)
-        .addConverterFactory(GsonConverterFactory.create())
-        .build()
-
-    private val apiService = retrofit.create(ExchangeApiService::class.java)
-
-
-    fun getExchangeRates() : Call<ExchangeDataResponse> {
-
-        return apiService.getLatestData(apiKey)
+    fun makeRetrofitService() : ExchangeApiService{
+        return Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build().create(ExchangeApiService::class.java)
     }
+
+
+//    fun getExchangeRates(): Call<ExchangeDataResponse> {
+//
+//        return apiService.getLatestData(apiKey)
+//    }
 
 
 }

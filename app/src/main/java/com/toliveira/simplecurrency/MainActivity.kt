@@ -2,13 +2,18 @@ package com.toliveira.simplecurrency
 
 import android.os.Bundle
 import android.widget.ArrayAdapter
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.toliveira.simplecurrency.databinding.ActivityMainBinding
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import retrofit2.Call
 import retrofit2.Callback
+import retrofit2.HttpException
 import retrofit2.Response
 
 private lateinit var binding: ActivityMainBinding
@@ -27,41 +32,81 @@ class MainActivity : AppCompatActivity() {
 
         val exchangeClient = ExchangeRatesClient()
 
-        val call = exchangeClient.getExchangeRates()
-        println("This Call -> ${call.request().url()}")
+        val service = ExchangeRatesClient().makeRetrofitService()
 
-        call.enqueue(object : Callback<ExchangeDataResponse> {
-            override fun onResponse(
-                call: Call<ExchangeDataResponse>,
-                response: Response<ExchangeDataResponse>
-            ) {
-                if (response.isSuccessful) {
-                    val exchange = response.body()
+        CoroutineScope(Dispatchers.IO).launch {
+            val response = service.getLatestData()
+            withContext(Dispatchers.Main){
+                try {
+                    if(response.isSuccessful){
+                        val exchange = response.body()
 
-                    exchange?.rates?.forEach { (value, Key) ->
-                        spinnerAdapter.add(value)
+                        exchange?.rates?.forEach { (value, Key) ->
+                            spinnerAdapter.add(value)
+                        }
+
+                        binding.currency.adapter = spinnerAdapter
+                        binding.base.adapter = spinnerAdapter
+
+                        binding.button.setOnClickListener {
+                            exchangeResult(exchange)
+                        }
+                    }else{
+                        Toast.makeText(this@MainActivity, "Error ${response.code()}", Toast.LENGTH_SHORT).show()
                     }
-
-                    binding.currency.adapter = spinnerAdapter
-                    binding.base.adapter = spinnerAdapter
-
-                    binding.button.setOnClickListener {
-                        exchangeResult(exchange)
-                    }
-
-
-                } else {
-                    println("Erro!!!")
-                    println(response.code())
-                    println(response.message())
+                }catch (e : HttpException){
+                    Toast.makeText(this@MainActivity, "Exception ${e.message()}", Toast.LENGTH_SHORT).show()
+                }catch (e: Throwable) {
+                    Toast.makeText(this@MainActivity, "Oooops: Something else went wrong!", Toast.LENGTH_SHORT).show()
                 }
             }
+        }
 
-            override fun onFailure(call: Call<ExchangeDataResponse>, t: Throwable) {
-                println("Erro na chamada!!")
-                println(t.message)
-            }
-        })
+
+
+
+
+
+
+
+//        val call = exchangeClient.getExchangeRates()
+//        println("This Call -> ${call.request().url()}")
+
+//        runBlocking {
+//            object : Callback<ExchangeDataResponse> {
+//                override fun onResponse(
+//                    call: Call<ExchangeDataResponse>,
+//                    response: Response<ExchangeDataResponse>
+//                ) {
+//                    if (response.isSuccessful) {
+//                        val exchange = response.body()
+//
+//                        exchange?.rates?.forEach { (value, Key) ->
+//                            spinnerAdapter.add(value)
+//                        }
+//
+//                        binding.currency.adapter = spinnerAdapter
+//                        binding.base.adapter = spinnerAdapter
+//
+//                        binding.button.setOnClickListener {
+//                            exchangeResult(exchange)
+//                        }
+//
+//
+//                    } else {
+//                        println("Erro!!!")
+//                        println(response.code())
+//                        println(response.message())
+//                    }
+//                }
+//
+//
+//                override fun onFailure(call: Call<ExchangeDataResponse>, t: Throwable) {
+//                    println("Erro na chamada!!")
+//                    println(t.message)
+//                }
+//            }
+//        }
 
     }
 
@@ -70,15 +115,14 @@ class MainActivity : AppCompatActivity() {
         var finalValue: Double = 0.0
         val spinnerChoice = binding.currency.selectedItem.toString()
         val baseChoice = binding.base.selectedItem.toString()
-        var tmp : Double = 0.0
+        var tmp: Double = 0.0
 
         if (exchange!!.rates.isNotEmpty()) {
             if (baseChoice == "EUR") {
                 val exchangeValue = exchange.rates[spinnerChoice]
                 finalValue = initialValue * exchangeValue!!.toDouble()
                 binding.result.text = finalValue.toString()
-            }
-            else{
+            } else {
                 tmp = initialValue / exchange.rates[baseChoice]!!.toDouble()
                 finalValue = tmp * exchange.rates[spinnerChoice]!!.toDouble()
                 binding.result.text = finalValue.toString()
