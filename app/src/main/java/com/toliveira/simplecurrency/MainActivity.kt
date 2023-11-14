@@ -37,12 +37,10 @@ class MainActivity : AppCompatActivity() {
         CoroutineScope(Dispatchers.IO).launch {
             val apiKey = GetApiKey.getApiKey(this@MainActivity)
             val response = service.getLatestData(apiKey)
-            withContext(Dispatchers.Main){
+            withContext(Dispatchers.Main) {
                 try {
-                    if(response.isSuccessful){
+                    if (response.isSuccessful) {
                         val exchange = response.body()
-                        Toast.makeText(this@MainActivity, "${response.message()} and ${response.code()}", Toast.LENGTH_SHORT).show()
-                        println("Raw Answer : ${response.raw()}")
                         exchange?.rates?.forEach { (value, Key) ->
                             spinnerAdapter.add(value)
                         }
@@ -53,67 +51,33 @@ class MainActivity : AppCompatActivity() {
                         binding.button.setOnClickListener {
                             exchangeResult(exchange)
                         }
-                    }else{
-                        Toast.makeText(this@MainActivity, "Error ${response.code()}", Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(
+                            this@MainActivity,
+                            "Error ${response.code()}",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
-                }catch (e : HttpException){
-                    Toast.makeText(this@MainActivity, "Exception ${e.message()}", Toast.LENGTH_SHORT).show()
-                }catch (e: Throwable) {
-                    Toast.makeText(this@MainActivity, "Oooops: Something else went wrong!", Toast.LENGTH_SHORT).show()
+                } catch (e: HttpException) {
+                    Toast.makeText(
+                        this@MainActivity,
+                        "Exception ${e.message()}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } catch (e: Throwable) {
+                    Toast.makeText(
+                        this@MainActivity,
+                        "Oooops: Something else went wrong!",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
         }
 
-
-
-
-
-
-
-
-//        val call = exchangeClient.getExchangeRates()
-//        println("This Call -> ${call.request().url()}")
-
-//        runBlocking {
-//            object : Callback<ExchangeDataResponse> {
-//                override fun onResponse(
-//                    call: Call<ExchangeDataResponse>,
-//                    response: Response<ExchangeDataResponse>
-//                ) {
-//                    if (response.isSuccessful) {
-//                        val exchange = response.body()
-//
-//                        exchange?.rates?.forEach { (value, Key) ->
-//                            spinnerAdapter.add(value)
-//                        }
-//
-//                        binding.currency.adapter = spinnerAdapter
-//                        binding.base.adapter = spinnerAdapter
-//
-//                        binding.button.setOnClickListener {
-//                            exchangeResult(exchange)
-//                        }
-//
-//
-//                    } else {
-//                        println("Erro!!!")
-//                        println(response.code())
-//                        println(response.message())
-//                    }
-//                }
-//
-//
-//                override fun onFailure(call: Call<ExchangeDataResponse>, t: Throwable) {
-//                    println("Erro na chamada!!")
-//                    println(t.message)
-//                }
-//            }
-//        }
-
     }
 
     private fun exchangeResult(exchange: ExchangeDataResponse?) {
-        val initialValue = binding.value.text.toString().toDouble()
+        val initialValue = binding.valueText.text.toString().toDouble()
         var finalValue: Double = 0.0
         val spinnerChoice = binding.currency.selectedItem.toString()
         val baseChoice = binding.base.selectedItem.toString()
@@ -123,11 +87,13 @@ class MainActivity : AppCompatActivity() {
             if (baseChoice == "EUR") {
                 val exchangeValue = exchange.rates[spinnerChoice]
                 finalValue = initialValue * exchangeValue!!.toDouble()
-                binding.result.text = finalValue.toString()
+                val presentedValue = String.format("%.3f $spinnerChoice",finalValue)
+                binding.result.text = presentedValue
             } else {
                 tmp = initialValue / exchange.rates[baseChoice]!!.toDouble()
                 finalValue = tmp * exchange.rates[spinnerChoice]!!.toDouble()
-                binding.result.text = finalValue.toString()
+                val presentedValue = String.format("%.3f $spinnerChoice",finalValue)
+                binding.result.text = presentedValue
             }
         }
 
