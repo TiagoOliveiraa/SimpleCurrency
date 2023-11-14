@@ -35,12 +35,14 @@ class MainActivity : AppCompatActivity() {
         val service = ExchangeRatesClient().makeRetrofitService()
 
         CoroutineScope(Dispatchers.IO).launch {
-            val response = service.getLatestData()
+            val apiKey = GetApiKey.getApiKey(this@MainActivity)
+            val response = service.getLatestData(apiKey)
             withContext(Dispatchers.Main){
                 try {
                     if(response.isSuccessful){
                         val exchange = response.body()
-
+                        Toast.makeText(this@MainActivity, "${response.message()} and ${response.code()}", Toast.LENGTH_SHORT).show()
+                        println("Raw Answer : ${response.raw()}")
                         exchange?.rates?.forEach { (value, Key) ->
                             spinnerAdapter.add(value)
                         }

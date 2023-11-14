@@ -11,7 +11,8 @@ import java.util.Currency
 interface ExchangeApiService {
 
     @GET("latest")
-    @Headers("Authorization: a94e21810104cb8418f0bc957aab23e0")
-    suspend fun getLatestData(): Response<ExchangeDataResponse>
+    suspend fun getLatestData(
+        @Query("access_key") apiKey: String,
+    ): Response<ExchangeDataResponse>
 
 }
