@@ -5,4 +5,4 @@ Objective: Understand interaction with API and Android APP, improve in kotlin co
 
 Added a splash screen to improve UI and used Material 3 (Simple UI Design).
 
-![Screenshot](SimpleCurrency/ScreenShotScreen.png)
+![Screenshot](ScreenShotScreen.png)
